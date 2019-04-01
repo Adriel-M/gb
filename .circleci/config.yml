@@ -8,4 +8,4 @@ jobs:
       - checkout
       - run:
           name: "Lint Go code"
-          command: "! go fmt ./... 2>&1 | read"
+          command: "diff -u <(echo -n) <(gofmt -d .)"
