@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  lint:
     working_directory: /go/src/github.com/Adriel-M/gb
     docker:
       - image: circleci/golang:latest
@@ -9,6 +9,19 @@ jobs:
       - run:
           name: "Lint Go code"
           command: "diff -u <(echo -n) <(gofmt -d .)"
+  unit-test:
+    working_directory: /go/src/github.com/Adriel-M/gb
+    docker:
+      - image: circleci/golang:latest
+    steps:
+      - checkout
       - run:
           name: "UnitTests"
           command: "go test ./..."
+
+workflows:
+  version: 2
+  test:
+    jobs:
+        - lint
+        - unit-test
