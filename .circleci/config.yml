@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/Adriel-M/gb
+    docker:
+      - image: circleci/golang:latest
+    steps:
+      - checkout
+      - run:
+          name: "Lint Go code"
+          command: "! go fmt ./... 2>&1 | read"
