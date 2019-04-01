@@ -9,3 +9,6 @@ jobs:
       - run:
           name: "Lint Go code"
           command: "diff -u <(echo -n) <(gofmt -d .)"
+      - run:
+          name: "UnitTests"
+          command: "go test ./..."
