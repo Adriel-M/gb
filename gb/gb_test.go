@@ -30,25 +30,25 @@ func (a Assert) intEqual(actual int, expected int) {
 
 var postsFolder = filepath.Join("testdata", "testposts")
 
-func TestRetrieveMeta(t *testing.T) {
+func TestRetrieveMetaFromFromFolder(t *testing.T) {
 	assert := &Assert{t: t}
-	metaPath := filepath.Join(postsFolder, "001-Post1", metaFileName)
-	meta, err := retrieveMeta(metaPath)
+	metaPath := filepath.Join(postsFolder, "001-Post1")
+	meta, err := retrieveMetaFromFolder(metaPath)
 	if err != nil {
 		t.Fatalf("Failed to read %s", metaPath)
 	}
 	assert.stringEqual(meta.Title, "post 1")
 	assert.boolEqual(meta.Visible, true)
-	assert.stringEqual(meta.Path, "post1writeup.md")
+	assert.stringEqual(meta.Path, filepath.Join(postsFolder, "001-Post1", "post1writeup.md"))
 	assert.intEqual(meta.Id, 1)
 }
 
-func TestMetaNotExist(t *testing.T) {
+func TestRetrieveMetaFromFromFolderNotExist(t *testing.T) {
 	assert := &Assert{t: t}
-	nonExistantMetaPath := filepath.Join(postsFolder, "nonExistantFolder", metaFileName)
-	_, err := retrieveMeta(nonExistantMetaPath)
+	nonExistantMetaFolderPath := filepath.Join(postsFolder, "nonExistantFolder")
+	_, err := retrieveMetaFromFolder(nonExistantMetaFolderPath)
 	if err == nil {
-		t.Fatalf("%s should not exist", nonExistantMetaPath)
+		t.Fatalf("%s should not exist", nonExistantMetaFolderPath)
 	}
-	assert.stringEqual(err.Error(), fmt.Sprintf("open %s: no such file or directory", nonExistantMetaPath))
+	assert.stringEqual(err.Error(), fmt.Sprintf("open %s: no such file or directory", filepath.Join(nonExistantMetaFolderPath, metaFileName)))
 }
