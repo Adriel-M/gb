@@ -2,6 +2,7 @@ package gb
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -26,8 +27,9 @@ type Post struct {
 
 var metaFileName = "meta.json"
 
-func retrieveMeta(path string) (*PostMeta, error) {
-	jsonFile, err := ioutil.ReadFile(path)
+func retrieveMetaFromFolder(folderPath string) (*PostMeta, error) {
+	metaFilePath := filepath.Join(folderPath, metaFileName)
+	jsonFile, err := ioutil.ReadFile(metaFilePath)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -39,17 +41,17 @@ func retrieveMeta(path string) (*PostMeta, error) {
 		log.Println(err)
 		return nil, err
 	}
+	if postMeta.Path == "" {
+		log.Println("Path is not specified!")
+		return nil, errors.New("path does not exist")
+	}
+	pathWithFolder := filepath.Join(folderPath, postMeta.Path)
+	postMeta.Path = pathWithFolder
 	return &postMeta, nil
 }
 
 // Path to the meta file
-func retrievePost(path string) (*Post, error) {
-	postMeta, err := retrieveMeta(path)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-
+func retrievePostFromMeta(postMeta *PostMeta) (*Post, error) {
 	bodyFile, err := ioutil.ReadFile(postMeta.Path)
 	if err != nil {
 		log.Println(err)
@@ -85,8 +87,12 @@ func retrievePosts(postsLocation string) ([]*Post, map[int]*Post, error) {
 			continue
 		}
 		folderName := f.Name()
-		postMetaLocation := filepath.Join(postsLocation, folderName+metaFileName)
-		newPost, err := retrievePost(postMetaLocation)
+		postMetaFolder := filepath.Join(postsLocation, folderName)
+		postMeta, err := retrieveMetaFromFolder(postMetaFolder)
+		if err != nil {
+			continue
+		}
+		newPost, err := retrievePostFromMeta(postMeta)
 		if err != nil {
 			continue
 		}
