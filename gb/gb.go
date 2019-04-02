@@ -43,7 +43,7 @@ func retrieveMetaFromFolder(folderPath string) (*PostMeta, error) {
 	}
 	if postMeta.Path == "" {
 		log.Println("Path is not specified!")
-		return nil, errors.New("path does not exist")
+		return nil, errors.New("path does not exist for this post")
 	}
 	pathWithFolder := filepath.Join(folderPath, postMeta.Path)
 	postMeta.Path = pathWithFolder
@@ -61,6 +61,7 @@ func retrievePostFromMeta(postMeta *PostMeta) (*Post, error) {
 
 	return &Post{
 		Title:   postMeta.Title,
+		Id:      postMeta.Id,
 		Visible: postMeta.Visible,
 		Body:    postBody,
 	}, nil
