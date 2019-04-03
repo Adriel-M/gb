@@ -17,12 +17,11 @@ type PostMeta struct {
 }
 
 type Post struct {
-	Title   string
-	Id      int
-	Visible bool
-	Body    string
-	Next    *Post
-	Prev    *Post
+	Title string
+	Id    int
+	Body  string
+	Next  *Post
+	Prev  *Post
 }
 
 var metaFileName = "meta.json"
@@ -60,16 +59,27 @@ func retrievePostFromMeta(postMeta *PostMeta) (*Post, error) {
 	postBody := string(bodyFile)
 
 	return &Post{
-		Title:   postMeta.Title,
-		Id:      postMeta.Id,
-		Visible: postMeta.Visible,
-		Body:    postBody,
+		Title: postMeta.Title,
+		Id:    postMeta.Id,
+		Body:  postBody,
 	}, nil
 }
 
 func reversePosts(posts []*Post) {
 	for l, r := 0, len(posts)-1; l < r; l, r = l+1, r-1 {
 		posts[l], posts[r] = posts[r], posts[l]
+	}
+}
+
+func populatePrevNext(posts []*Post) {
+	numOfPosts := len(posts)
+	for i, post := range posts {
+		if i > 0 {
+			post.Prev = posts[i-1]
+		}
+		if i < numOfPosts-1 {
+			post.Next = posts[i+1]
+		}
 	}
 }
 
@@ -93,6 +103,9 @@ func retrievePosts(postsLocation string) ([]*Post, map[int]*Post, error) {
 		if err != nil {
 			continue
 		}
+		if !postMeta.Visible {
+			continue
+		}
 		newPost, err := retrievePostFromMeta(postMeta)
 		if err != nil {
 			continue
@@ -100,16 +113,7 @@ func retrievePosts(postsLocation string) ([]*Post, map[int]*Post, error) {
 		idToPost[newPost.Id] = newPost
 		posts = append(posts, newPost)
 	}
-
-	numberOfPosts := len(posts)
-	for i, post := range posts {
-		if i > 0 {
-			post.Prev = posts[i-1]
-		}
-		if i < numberOfPosts-1 {
-			post.Next = posts[i+1]
-		}
-	}
+	populatePrevNext(posts)
 	return posts, idToPost, nil
 }
 

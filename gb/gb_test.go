@@ -85,7 +85,6 @@ func TestRetrievePostFromMeta(t *testing.T) {
 	}
 	assert.stringEqual(validMeta.Title, post.Title)
 	assert.intEqual(validMeta.Id, post.Id)
-	assert.boolEqual(validMeta.Visible, post.Visible)
 	assert.postAddressEqual(nil, post.Next)
 	assert.postAddressEqual(nil, post.Prev)
 	body, err := ioutil.ReadFile(validMeta.Path)
@@ -129,5 +128,50 @@ func TestReversePosts(t *testing.T) {
 		forwardPost := posts[i]
 		assert.intEqual(reversePost.Id, forwardPost.Id)
 		assert.postAddressEqual(reversePost, forwardPost)
+	}
+}
+
+func TestPopulatePrevNext(t *testing.T) {
+	assert := &Assert{t: t}
+	posts := make([]*Post, 4)
+	for i := 0; i < 4; i++ {
+		posts[i] = &Post{
+			Id: i,
+		}
+	}
+	populatePrevNext(posts)
+	for i := 0; i < 4; i++ {
+		if i == 0 {
+			assert.postAddressEqual(posts[i].Prev, nil)
+		} else {
+			assert.postAddressEqual(posts[i].Prev, posts[i-1])
+			assert.intEqual(posts[i].Prev.Id, i-1)
+		}
+		if i == 3 {
+			assert.postAddressEqual(posts[i].Next, nil)
+		} else {
+			assert.postAddressEqual(posts[i].Next, posts[i+1])
+			assert.intEqual(posts[i].Next.Id, posts[i+1].Id)
+		}
+	}
+}
+
+func TestRetrievePosts(t *testing.T) {
+	assert := &Assert{t: t}
+	postArr, postMap, err := retrievePosts(postsFolder)
+	if err != nil {
+		t.Fatalf("post location is valid")
+	}
+	// Should skip metas without valid bodies and not visible
+	assert.intEqual(len(postArr), 3)
+	assert.intEqual(len(postMap), 3)
+	expectedTitle := [3]string{"post 1", "another post 3", "valid"}
+	expectedIds := [3]int{1, 3, 6}
+	for i, post := range postArr {
+		assert.stringEqual(post.Title, expectedTitle[i])
+		assert.intEqual(post.Id, expectedIds[i])
+	}
+	for _, post := range postArr {
+		assert.postAddressEqual(postMap[post.Id], post)
 	}
 }
