@@ -70,6 +70,16 @@ func TestRetrieveMetaFromFromFolderPathNotExist(t *testing.T) {
 	assert.stringEqual(err.Error(), "path does not exist for this post")
 }
 
+func TestRetrieveMetaFromFolderMetaInvalid(t *testing.T) {
+	// assert := &Assert{t: t}
+	pathWithInvalidMeta := filepath.Join(postsFolder, "007-InvalidMeta")
+	_, err := retrieveMetaFromFolder(pathWithInvalidMeta)
+	if err == nil {
+		t.Fatalf("meta should be invalid")
+	}
+	fmt.Println(err)
+}
+
 func TestRetrievePostFromMeta(t *testing.T) {
 	assert := &Assert{t: t}
 	validPostFolder := filepath.Join(postsFolder, "001-Post1")
@@ -174,4 +184,14 @@ func TestRetrievePosts(t *testing.T) {
 	for _, post := range postArr {
 		assert.postAddressEqual(postMap[post.Id], post)
 	}
+}
+
+func TestRetrievePostsInvalidPath(t *testing.T) {
+	assert := &Assert{t: t}
+	invalidPath := "someInvalid/path"
+	_, _, err := retrievePosts(invalidPath)
+	if err == nil {
+		t.Fatalf("path should be invalid")
+	}
+	assert.stringEqual(err.Error(), fmt.Sprintf("open %s: no such file or directory", invalidPath))
 }

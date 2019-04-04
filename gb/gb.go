@@ -89,7 +89,7 @@ func retrievePosts(postsLocation string) ([]*Post, map[int]*Post, error) {
 
 	folders, err := ioutil.ReadDir(postsLocation)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return nil, nil, err
 	}
 
