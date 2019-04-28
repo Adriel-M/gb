@@ -4,29 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Adriel-M/gb/gb/post"
 	"io/ioutil"
 	"log"
 	"path/filepath"
 )
 
-type PostMeta struct {
-	Title   string `json:title`
-	Visible bool   `json:visible`
-	Path    string `json:path`
-	Id      int    `json:id`
-}
-
-type Post struct {
-	Title string
-	Id    int
-	Body  string
-	Next  *Post
-	Prev  *Post
-}
-
 var metaFileName = "meta.json"
 
-func retrieveMetaFromFolder(folderPath string) (*PostMeta, error) {
+func retrieveMetaFromFolder(folderPath string) (*post.PostMeta, error) {
 	metaFilePath := filepath.Join(folderPath, metaFileName)
 	jsonFile, err := ioutil.ReadFile(metaFilePath)
 	if err != nil {
@@ -34,7 +20,7 @@ func retrieveMetaFromFolder(folderPath string) (*PostMeta, error) {
 		return nil, err
 	}
 
-	var postMeta PostMeta
+	var postMeta post.PostMeta
 	err = json.Unmarshal(jsonFile, &postMeta)
 	if err != nil {
 		log.Println(err)
@@ -50,7 +36,7 @@ func retrieveMetaFromFolder(folderPath string) (*PostMeta, error) {
 }
 
 // Path to the meta file
-func retrievePostFromMeta(postMeta *PostMeta) (*Post, error) {
+func retrievePostFromMeta(postMeta *post.PostMeta) (*post.Post, error) {
 	bodyFile, err := ioutil.ReadFile(postMeta.Path)
 	if err != nil {
 		log.Println(err)
@@ -58,20 +44,20 @@ func retrievePostFromMeta(postMeta *PostMeta) (*Post, error) {
 	}
 	postBody := string(bodyFile)
 
-	return &Post{
+	return &post.Post{
 		Title: postMeta.Title,
 		Id:    postMeta.Id,
 		Body:  postBody,
 	}, nil
 }
 
-func reversePosts(posts []*Post) {
+func reversePosts(posts []*post.Post) {
 	for l, r := 0, len(posts)-1; l < r; l, r = l+1, r-1 {
 		posts[l], posts[r] = posts[r], posts[l]
 	}
 }
 
-func populatePrevNext(posts []*Post) {
+func populatePrevNext(posts []*post.Post) {
 	numOfPosts := len(posts)
 	for i, post := range posts {
 		if i > 0 {
@@ -83,9 +69,9 @@ func populatePrevNext(posts []*Post) {
 	}
 }
 
-func retrievePosts(postsLocation string) ([]*Post, map[int]*Post, error) {
-	var posts []*Post
-	idToPost := make(map[int]*Post)
+func retrievePosts(postsLocation string) ([]*post.Post, map[int]*post.Post, error) {
+	var posts []*post.Post
+	idToPost := make(map[int]*post.Post)
 
 	folders, err := ioutil.ReadDir(postsLocation)
 	if err != nil {

@@ -2,76 +2,50 @@ package gb
 
 import (
 	"fmt"
+	as "github.com/Adriel-M/gb/assert"
+	"github.com/Adriel-M/gb/gb/post"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
 )
 
-type Assert struct {
-	t *testing.T
-}
-
-func (a Assert) stringEqual(actual string, expected string) {
-	if actual != expected {
-		a.t.Fatalf("Expected %s, but got %s", expected, actual)
-	}
-}
-
-func (a Assert) boolEqual(actual bool, expected bool) {
-	if actual != expected {
-		a.t.Fatalf("Expected %t, but got %t", expected, actual)
-	}
-}
-
-func (a Assert) intEqual(actual int, expected int) {
-	if actual != expected {
-		a.t.Fatalf("Expected %d, but got %d", expected, actual)
-	}
-}
-
-func (a Assert) postAddressEqual(actual *Post, expected *Post) {
-	if actual != expected {
-		a.t.Fatalf("Expected %#v, but got %#v", expected, actual)
-	}
-}
-
 var postsFolder = filepath.Join("testdata", "testposts")
 
 func TestRetrieveMetaFromFromFolder(t *testing.T) {
-	assert := &Assert{t: t}
+	assert := &as.Assert{T: t}
 	metaPath := filepath.Join(postsFolder, "001-Post1")
 	meta, err := retrieveMetaFromFolder(metaPath)
 	if err != nil {
 		t.Fatalf("Failed to read %s", metaPath)
 	}
-	assert.stringEqual(meta.Title, "post 1")
-	assert.boolEqual(meta.Visible, true)
-	assert.stringEqual(meta.Path, filepath.Join(postsFolder, "001-Post1", "post1writeup.md"))
-	assert.intEqual(meta.Id, 1)
+	assert.StringEqual(meta.Title, "post 1")
+	assert.BoolEqual(meta.Visible, true)
+	assert.StringEqual(meta.Path, filepath.Join(postsFolder, "001-Post1", "post1writeup.md"))
+	assert.IntEqual(meta.Id, 1)
 }
 
 func TestRetrieveMetaFromFromFolderNotExist(t *testing.T) {
-	assert := &Assert{t: t}
+	assert := &as.Assert{T: t}
 	nonExistantMetaFolderPath := filepath.Join(postsFolder, "nonExistantFolder")
 	_, err := retrieveMetaFromFolder(nonExistantMetaFolderPath)
 	if err == nil {
 		t.Fatalf("%s should not exist", nonExistantMetaFolderPath)
 	}
-	assert.stringEqual(err.Error(), fmt.Sprintf("open %s: no such file or directory", filepath.Join(nonExistantMetaFolderPath, metaFileName)))
+	assert.StringEqual(err.Error(), fmt.Sprintf("open %s: no such file or directory", filepath.Join(nonExistantMetaFolderPath, metaFileName)))
 }
 
 func TestRetrieveMetaFromFromFolderPathNotExist(t *testing.T) {
-	assert := &Assert{t: t}
+	assert := &as.Assert{T: t}
 	folderWithNotBodyPath := filepath.Join(postsFolder, "005-EmptyBodyPath")
 	_, err := retrieveMetaFromFolder(folderWithNotBodyPath)
 	if err == nil {
 		t.Fatalf("body path %s should not exist", folderWithNotBodyPath)
 	}
-	assert.stringEqual(err.Error(), "path does not exist for this post")
+	assert.StringEqual(err.Error(), "path does not exist for this post")
 }
 
 func TestRetrieveMetaFromFolderMetaInvalid(t *testing.T) {
-	// assert := &Assert{t: t}
+	// assert := &as.Assert{T: t}
 	pathWithInvalidMeta := filepath.Join(postsFolder, "007-InvalidMeta")
 	_, err := retrieveMetaFromFolder(pathWithInvalidMeta)
 	if err == nil {
@@ -81,9 +55,9 @@ func TestRetrieveMetaFromFolderMetaInvalid(t *testing.T) {
 }
 
 func TestRetrievePostFromMeta(t *testing.T) {
-	assert := &Assert{t: t}
+	assert := &as.Assert{T: t}
 	validPostFolder := filepath.Join(postsFolder, "001-Post1")
-	validMeta := &PostMeta{
+	validMeta := &post.PostMeta{
 		Title:   "some title",
 		Visible: true,
 		Path:    filepath.Join(validPostFolder, "meta.json"),
@@ -93,22 +67,22 @@ func TestRetrievePostFromMeta(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Valid postMeta, should not fail here")
 	}
-	assert.stringEqual(validMeta.Title, post.Title)
-	assert.intEqual(validMeta.Id, post.Id)
-	assert.postAddressEqual(nil, post.Next)
-	assert.postAddressEqual(nil, post.Prev)
+	assert.StringEqual(validMeta.Title, post.Title)
+	assert.IntEqual(validMeta.Id, post.Id)
+	assert.PostAddressEqual(nil, post.Next)
+	assert.PostAddressEqual(nil, post.Prev)
 	body, err := ioutil.ReadFile(validMeta.Path)
 	if err != nil {
 		t.Fatalf("Valid body path, should not fail here")
 	}
-	assert.stringEqual(string(body), post.Body)
+	assert.StringEqual(string(body), post.Body)
 }
 
 func TestRetrievePostFromMetaBodyNotExist(t *testing.T) {
-	assert := &Assert{t: t}
+	assert := &as.Assert{T: t}
 	folderWithMissingBodyPath := filepath.Join(postsFolder, "004-MissingBody")
 	missingBodyPath := filepath.Join(folderWithMissingBodyPath, "missing.md")
-	meta := &PostMeta{
+	meta := &post.PostMeta{
 		Title:   "some title",
 		Visible: true,
 		Path:    missingBodyPath,
@@ -118,80 +92,80 @@ func TestRetrievePostFromMetaBodyNotExist(t *testing.T) {
 	if err == nil {
 		t.Fatalf("body file should be missing")
 	}
-	assert.stringEqual(err.Error(), fmt.Sprintf("open %s: no such file or directory", missingBodyPath))
+	assert.StringEqual(err.Error(), fmt.Sprintf("open %s: no such file or directory", missingBodyPath))
 }
 
 func TestReversePosts(t *testing.T) {
-	assert := &Assert{t: t}
+	assert := &as.Assert{T: t}
 	numberOfPosts := 10
-	posts := make([]*Post, numberOfPosts)
+	posts := make([]*post.Post, numberOfPosts)
 	for i := 0; i < numberOfPosts; i++ {
-		posts[i] = &Post{
+		posts[i] = &post.Post{
 			Id: i,
 		}
 	}
-	copyOfPosts := make([]*Post, numberOfPosts)
+	copyOfPosts := make([]*post.Post, numberOfPosts)
 	copy(copyOfPosts, posts)
 	reversePosts(posts)
 	for i := 0; i < numberOfPosts; i++ {
 		reversePost := copyOfPosts[numberOfPosts-1-i]
 		forwardPost := posts[i]
-		assert.intEqual(reversePost.Id, forwardPost.Id)
-		assert.postAddressEqual(reversePost, forwardPost)
+		assert.IntEqual(reversePost.Id, forwardPost.Id)
+		assert.PostAddressEqual(reversePost, forwardPost)
 	}
 }
 
 func TestPopulatePrevNext(t *testing.T) {
-	assert := &Assert{t: t}
-	posts := make([]*Post, 4)
+	assert := &as.Assert{T: t}
+	posts := make([]*post.Post, 4)
 	for i := 0; i < 4; i++ {
-		posts[i] = &Post{
+		posts[i] = &post.Post{
 			Id: i,
 		}
 	}
 	populatePrevNext(posts)
 	for i := 0; i < 4; i++ {
 		if i == 0 {
-			assert.postAddressEqual(posts[i].Prev, nil)
+			assert.PostAddressEqual(posts[i].Prev, nil)
 		} else {
-			assert.postAddressEqual(posts[i].Prev, posts[i-1])
-			assert.intEqual(posts[i].Prev.Id, i-1)
+			assert.PostAddressEqual(posts[i].Prev, posts[i-1])
+			assert.IntEqual(posts[i].Prev.Id, i-1)
 		}
 		if i == 3 {
-			assert.postAddressEqual(posts[i].Next, nil)
+			assert.PostAddressEqual(posts[i].Next, nil)
 		} else {
-			assert.postAddressEqual(posts[i].Next, posts[i+1])
-			assert.intEqual(posts[i].Next.Id, posts[i+1].Id)
+			assert.PostAddressEqual(posts[i].Next, posts[i+1])
+			assert.IntEqual(posts[i].Next.Id, posts[i+1].Id)
 		}
 	}
 }
 
 func TestRetrievePosts(t *testing.T) {
-	assert := &Assert{t: t}
+	assert := &as.Assert{T: t}
 	postArr, postMap, err := retrievePosts(postsFolder)
 	if err != nil {
 		t.Fatalf("post location is valid")
 	}
 	// Should skip metas without valid bodies and not visible
-	assert.intEqual(len(postArr), 3)
-	assert.intEqual(len(postMap), 3)
+	assert.IntEqual(len(postArr), 3)
+	assert.IntEqual(len(postMap), 3)
 	expectedTitle := [3]string{"post 1", "another post 3", "valid"}
 	expectedIds := [3]int{1, 3, 6}
 	for i, post := range postArr {
-		assert.stringEqual(post.Title, expectedTitle[i])
-		assert.intEqual(post.Id, expectedIds[i])
+		assert.StringEqual(post.Title, expectedTitle[i])
+		assert.IntEqual(post.Id, expectedIds[i])
 	}
 	for _, post := range postArr {
-		assert.postAddressEqual(postMap[post.Id], post)
+		assert.PostAddressEqual(postMap[post.Id], post)
 	}
 }
 
 func TestRetrievePostsInvalidPath(t *testing.T) {
-	assert := &Assert{t: t}
+	assert := &as.Assert{T: t}
 	invalidPath := "someInvalid/path"
 	_, _, err := retrievePosts(invalidPath)
 	if err == nil {
 		t.Fatalf("path should be invalid")
 	}
-	assert.stringEqual(err.Error(), fmt.Sprintf("open %s: no such file or directory", invalidPath))
+	assert.StringEqual(err.Error(), fmt.Sprintf("open %s: no such file or directory", invalidPath))
 }
